@@ -1,7 +1,7 @@
 
 pipeline {
     agent {
-        label 'java-slave'
+        label 'any'
     }
     environment {
         DOCKER_CREDS  = credentials('i27devopsb8_dockerhub_creds')
