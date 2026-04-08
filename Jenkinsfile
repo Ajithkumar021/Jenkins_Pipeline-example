@@ -2,7 +2,7 @@ pipeline{
 	agent any
 		
 	environment{
-		DOCKER_CREDS = credentials('my_dockerhub_creds')
+		DOCKER_CREDS = credentials('adding_dockerhub_creds')
 		DOCKER_REPO = "P&D/s7"
 	}
 	
