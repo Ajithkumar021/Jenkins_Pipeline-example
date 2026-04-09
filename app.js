@@ -4,7 +4,7 @@ const app = express();
 
 //Root route
 app.get('/', (req, res) => {
-    res.send('WORKING CODE');
+    res.send('Jenkins_Session');
 });
 
 // Health check route
