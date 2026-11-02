@@ -1,26 +1,44 @@
 pipeline{
 	agent any
 		
-	environment{
-		DOCKER_CREDS = credentials('my_dockerhub_creds')
-		DOCKER_REPO = "ajivir021/newrepo"
-	}
+	environment {
+        DOCKER_CREDS = credentials('my_dockerhub_creds')
+        DOCKER_REPO  = 'ajivir021/newrepo'
+    }
 	
-	
-	stages{
-		stage(DockerBuild){
-			steps{
-				echo "****Building the docker Image"
-				sh "docker build -t ${DOCKER_REPO}:$GIT_COMMIT ."
-				echo "***listing the docker images"
-				sh "docker images"
-				echo "***Docker login***"
-				sh "docker login -u ${DOCKER_CREDS_USR} -p ${DOCKER_CREDS_PSW}"
-				sh "docker push ${DOCKER_REPO}:$GIT_COMMIT"
-				
-				}
-		}
-	}
+	stage('Checkout') {
+    steps {
+        git branch: 'main',
+            url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
+    }
+}
 
+	stages {
 
+        stage('Docker Build') {
+            steps {
+                echo 'Building Docker Image'
+
+                sh "docker build -t ${DOCKER_REPO}:${BUILD_NUMBER} ."
+
+                sh "docker images"
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                sh '''
+                echo "$DOCKER_CREDS_PSW" | docker login \
+                -u "$DOCKER_CREDS_USR" \
+                --password-stdin
+                '''
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh "docker push ${DOCKER_REPO}:${BUILD_NUMBER}"
+            }
+        }
+    }
 }
