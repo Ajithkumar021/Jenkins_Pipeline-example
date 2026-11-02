@@ -1,41 +1,79 @@
+
 pipeline {
     agent any
 
     environment {
-        DOCKER_CREDS = credentials('my_dockerhub_creds')
-        DOCKER_REPO  = 'ajivir021/newrepo'
+        DOCKER_REPO = 'ajivir021/newrepo'
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/<your-github-user>/<your-repo>.git',
-                    branch: 'main'
+                git branch: 'main',
+                    url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh 'ls -la'
-                sh "docker build -t ${DOCKER_REPO}:${BUILD_NUMBER} ."
+                echo 'Building Docker image...'
+
+                sh 'docker version'
+
+                sh """
+                    docker build --pull \
+                    -t ${DOCKER_REPO}:${BUILD_NUMBER} .
+                """
             }
         }
 
         stage('Docker Login') {
             steps {
-                sh '''
-                echo "$DOCKER_CREDS_PSW" | docker login \
-                  -u "$DOCKER_CREDS_USR" \
-                  --password-stdin
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'my_dockerhub_creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login \
+                        -u "$DOCKER_USER" \
+                        --password-stdin
+                    '''
+                }
             }
         }
 
         stage('Docker Push') {
             steps {
-                sh "docker push ${DOCKER_REPO}:${BUILD_NUMBER}"
+                echo 'Pushing Docker image to Docker Hub...'
+
+                sh """
+                    docker push ${DOCKER_REPO}:${BUILD_NUMBER}
+                """
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Docker image pushed successfully: ${DOCKER_REPO}:${BUILD_NUMBER}"
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console output.'
+        }
+
+        always {
+            sh 'docker logout || true'
+            echo 'Pipeline execution completed.'
         }
     }
 }
