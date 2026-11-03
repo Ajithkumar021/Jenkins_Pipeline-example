@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json .
 
 # Step 4 : Install Dependencies
-RUN npm install 
+RUN npm install --omit=dev && npm cache clean --force
 
 # Step 5 : Copy app source code 
 COPY app.js .
