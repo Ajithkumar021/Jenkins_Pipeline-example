@@ -1,10 +1,9 @@
-
 pipeline {
     agent any
 
     environment {
-        DOCKER_CREDS = credentials('my_docker_creds')
-        DOCKER_REPO = 'ajivir021/newrepo'
+        DOCKER_CREDS = credentials('dockerhub-creds')
+        DOCKER_REPO = 'ajivir021/jenkins'
     }
 
     stages {
@@ -18,15 +17,19 @@ pipeline {
 
         stage('DockerBuild') {
             steps {
-                echo "****Building the docker Image"
+                echo "**** Building the Docker Image ****"
 
                 sh 'docker build -t "$DOCKER_REPO:$BUILD_NUMBER" .'
 
-                echo "***listing the docker images"
+                echo "*** Listing Docker Images ***"
 
                 sh 'docker images'
+            }
+        }
 
-                echo "***Docker login***"
+        stage('Docker Login') {
+            steps {
+                echo "*** Docker Login ***"
 
                 sh '''
                     set +x
@@ -34,8 +37,12 @@ pipeline {
                         -u "$DOCKER_CREDS_USR" \
                         --password-stdin
                 '''
+            }
+        }
 
-                echo "***Docker push***"
+        stage('Docker Push') {
+            steps {
+                echo "*** Pushing Docker Image ***"
 
                 sh 'docker push "$DOCKER_REPO:$BUILD_NUMBER"'
             }
