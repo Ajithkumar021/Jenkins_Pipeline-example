@@ -1,7 +1,7 @@
 
 # Step 1: use nodejs as the base image 
 # repo.jfrog.***.com/digital/node:18
-FROM node:18
+FROM node:18-slim
 
 # Step 2 : Set working directory for my application 
 WORKDIR /app
