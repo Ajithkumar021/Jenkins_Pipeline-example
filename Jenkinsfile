@@ -2,7 +2,7 @@ pipeline{
 	agent any
 		
 	environment{
-		DOCKER_CREDS = credentials('my_dockerhub_creds')
+		DOCKER_CREDS = credentials('ajivir021')
 		DOCKER_REPO = "ajivir021/newrepo"
 	}
 	
