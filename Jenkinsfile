@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -15,8 +14,12 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
+                script {
+                    retry(count: 2, conditions: [nonresumable()]) {
+                        git branch: 'main',
+                            url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
+                    }
+                }
             }
         }
 
@@ -64,7 +67,7 @@ pipeline {
 
     post {
         success {
-            echo "SUCCESS: Docker image pushed!"
+            echo 'Docker image pushed successfully!'
             echo "Image: ${DOCKER_REPO}:${BUILD_NUMBER}"
         }
 
