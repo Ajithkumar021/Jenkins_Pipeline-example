@@ -7,8 +7,8 @@ pipeline {
     }
 
     options {
-        timeout(time: 30, unit: 'MINUTES')
         timestamps()
+        timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
@@ -26,10 +26,9 @@ pipeline {
 
                 sh 'docker version'
 
-                sh """
-                    docker build --pull \
-                    -t ${DOCKER_REPO}:${BUILD_NUMBER} .
-                """
+                sh '''
+                    docker build -t "$DOCKER_REPO:$BUILD_NUMBER" .
+                '''
             }
         }
 
@@ -37,15 +36,16 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'my_dockerhub_creds',
+                        credentialsId: 'my_docker_creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
                     sh '''
+                        set +x
                         echo "$DOCKER_PASS" | docker login \
-                        -u "$DOCKER_USER" \
-                        --password-stdin
+                            -u "$DOCKER_USER" \
+                            --password-stdin
                     '''
                 }
             }
@@ -53,27 +53,27 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                echo 'Pushing Docker image to Docker Hub...'
+                echo 'Pushing image to Docker Hub...'
 
-                sh """
-                    docker push ${DOCKER_REPO}:${BUILD_NUMBER}
-                """
+                sh '''
+                    docker push "$DOCKER_REPO:$BUILD_NUMBER"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Docker image pushed successfully: ${DOCKER_REPO}:${BUILD_NUMBER}"
+            echo "SUCCESS: Docker image pushed!"
+            echo "Image: ${DOCKER_REPO}:${BUILD_NUMBER}"
         }
 
         failure {
-            echo 'Pipeline failed. Check the Jenkins console output.'
+            echo 'Pipeline failed. Check the console output.'
         }
 
         always {
             sh 'docker logout || true'
-            echo 'Pipeline execution completed.'
         }
     }
 }
