@@ -10,8 +10,12 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
+                script {
+                    retry(count: 2, conditions: [nonresumable()]) {
+                        git branch: 'main',
+                            url: 'https://github.com/Ajithkumar021/Jenkins_Pipeline-example.git'
+                    }
+                }
             }
         }
 
@@ -31,12 +35,20 @@ pipeline {
             steps {
                 echo "*** Docker Login ***"
 
-                sh '''
-                    set +x
-                    echo "$DOCKER_CREDS_PSW" | docker login \
-                        -u "$DOCKER_CREDS_USR" \
-                        --password-stdin
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+                        echo "$DOCKER_PASS" | docker login \
+                            -u "$DOCKER_USER" \
+                            --password-stdin
+                    '''
+                }
             }
         }
 
